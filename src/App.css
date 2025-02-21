@@ -40,3 +40,64 @@
 .read-the-docs {
   color: #888;
 }
+
+.app-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 20px;
+  height: 100vh;
+}
+.editor-container {
+  border: 1px solid #ccc;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.final-code-view {
+  border: 1px solid #ccc;
+  padding: 10px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  height: 40vh;
+  flex: 1;
+}
+
+.final-code-view pre {
+  margin: 0;
+  height: 100%;
+  overflow-y: auto;
+  text-align: left;
+}
+.final-code-view code {
+  font-family: monospace;
+}
+
+/* for editor  */
+
+.monaco-editor .custom-variable {
+  color: #a000ff !important;
+  font-style: italic;
+  background-color: lightyellow;
+  color: black !important;
+}
+
+.monaco-editor .variable\.predefined {
+  background-color: lightyellow;
+  color: black !important;
+}
+
+.highlighted-text {
+  font-weight: bold;
+  background: #f5f8ff;
+  color: #2d31d5 !important;
+  border-color: #c3d5ff;
+  border: 1px solid #d0d5dd;
+  border-radius: 4px;
+  padding: 2px;
+}
