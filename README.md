@@ -1,7 +1,7 @@
 # **Monaco Editor Variable Highlighter**
 
 ## **Overview**  
-This project integrates **Monaco Editor** to provide real-time syntax highlighting for specific variables using **regular expressions (RegEx)**. It enhances the editor experience by visually distinguishing variables, making it easier to read and edit code or text.
+This project integrates **[Monaco Editor](https://www.npmjs.com/package/@monaco-editor/react)** to provide real-time syntax highlighting for specific variables using **regular expressions (RegEx)**. It enhances the editor experience by visually distinguishing variables, making it easier to read and edit code or text.
 
 ## **Features**  
 - ✅ **Real-time Variable Highlighting** – Automatically highlights variables based on a given regex pattern.  
