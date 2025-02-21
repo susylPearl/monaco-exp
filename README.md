@@ -11,17 +11,16 @@ This project integrates **[Monaco Editor](https://www.npmjs.com/package/@monaco-
 - ✅ **Optimized Performance** – Uses `deltaDecorations` to efficiently update highlights without affecting the editor's performance.  
 
 ## **Technology Stack**  
-- **Monaco Editor** – The core text editor  
-- **React.js** – Frontend framework  
-- **TypeScript** – Ensures type safety and maintainability  
-- **Vercel** – Deployment platform  
+- **[Monaco Editor](https://www.npmjs.com/package/@monaco-editor/react)** – The core text editor  
+- **[React.js](https://react.dev/)** – Frontend framework   
+- **[Vercel](https://vercel.com/)** – Deployment platform  
 
 ## **Installation & Setup**  
 
 ### **1. Clone the Repository**  
 ```sh
-git clone https://github.com/your-username/monaco-editor-highlighter.git
-cd monaco-editor-highlighter
+git clone https://github.com/susylPearl/monaco-exp.git
+cd monaco-exp
 ```
 ### **2. Install Dependencies**  
 ```sh
