@@ -5,8 +5,6 @@ import "../App.css";
 
 const MonacoEditorWithSlash = ({ onCodeChange, fields }) => {
     const editorRef = useRef(null);
-    const isUpdatingRef = useRef(false);
-    // const decorationsRef = useRef([]);
 
     const handleEditorDidMount = (editor, monaco) => {
         editorRef.current = editor;
@@ -38,6 +36,8 @@ const MonacoEditorWithSlash = ({ onCodeChange, fields }) => {
                     lineContent,
                     model.getLanguageId()
                 )[0];
+
+                console.log(tokens, lineContent);
 
                 let tokenType = null;
                 for (let i = 0; i < tokens.length; i++) {
@@ -87,10 +87,6 @@ const MonacoEditorWithSlash = ({ onCodeChange, fields }) => {
 
         // Listen for content changes & update highlights
         editor.onDidChangeModelContent(() => {
-            if (isUpdatingRef.current) {
-                return;
-            }
-
             onCodeChange(editor.getValue());
             // highlightVariables(editor, monaco, regexPattern);
             // replaceVariables(editor, monaco, fields);
