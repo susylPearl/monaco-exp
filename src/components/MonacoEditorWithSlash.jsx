@@ -13,44 +13,15 @@ const MonacoEditorWithSlash = ({ onCodeChange, fields }) => {
 
         if (!monaco || !fields || fields.length === 0) return;
 
-        //e Register a new language that extends Python
-        //monaco.languages.register({ id: "pythonWithVariables" });
-
-        // Create a regex pattern dynamically
-        // const variablePattern = fields
-        //   .map((field) => field.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // Escape special characters
-        //   .join("|");
-
-        // const regexPattern = new RegExp(`/(?:${variablePattern})`, "g");
-
         // Define a theme for highlighting
         monaco.editor.defineTheme("myCustomTheme", {
             base: "vs",
             inherit: true,
-            rules: [
-                // {
-                //   token: "highlightedVariable",
-                //   foreground: "FFA500",
-                //   fontStyle: "bold",
-                // },
-            ],
-            colors: {
-                //"editor.foreground": "#FFFFFF",
-                // "editor.background": "#1E1E1E",
-            },
+            rules: [],
+            colors: {},
         });
 
         monaco.editor.setTheme("myCustomTheme");
-
-        // Define syntax highlighting with correct language ID
-        // monaco.languages.setMonarchTokensProvider("pythonWithVariables", {
-        //   tokenizer: {
-        //     root: [[regexPattern, "highlightedVariable"]],
-        //   },
-        // });
-
-        // Apply highlighting initially
-        // highlightVariables(editor, monaco, regexPattern);
 
         // Register autocomplete provider for "/"
         monaco.languages.registerCompletionItemProvider("python", {
@@ -93,13 +64,15 @@ const MonacoEditorWithSlash = ({ onCodeChange, fields }) => {
                 }
 
                 const suggestions = fields.map((variable) => ({
-                    label: `/${variable.label}`,
+                    label: `${variable.p_title} : ${variable.label}`,
                     kind: monaco.languages.CompletionItemKind.Variable,
-                    insertText: `${variable.value}`, // Include `/`
+                    // insertText: `${variable.label}`, // Include `/`
+                    // insertText: `data["${variable.label}"]`, // Include `/`
+                    insertText: `data["${variable.p_title}"]["${variable.label}"]`, // Include `/`
                     documentation: `Insert variable ${variable.value}`,
                     range: new monaco.Range(
                         position.lineNumber,
-                        position.column,
+                        position.column - 1,
                         position.lineNumber,
                         position.column
                     ),
@@ -120,92 +93,8 @@ const MonacoEditorWithSlash = ({ onCodeChange, fields }) => {
 
             onCodeChange(editor.getValue());
             // highlightVariables(editor, monaco, regexPattern);
-            replaceVariables(editor, monaco, fields);
+            // replaceVariables(editor, monaco, fields);
         });
-    };
-
-    // const highlightVariables = (editor, monaco, regexPattern) => {
-    //   const model = editor.getModel();
-    //   if (!model) return;
-
-    //   const matches = [...model.getValue().matchAll(regexPattern)];
-    //   const decorations = matches
-    //     .map((match) => {
-    //       if (match.index !== undefined) {
-    //         return {
-    //           range: new monaco.Range(
-    //             model.getPositionAt(match.index).lineNumber,
-    //             model.getPositionAt(match.index).column,
-    //             model.getPositionAt(match.index + match[0].length).lineNumber,
-    //             model.getPositionAt(match.index + match[0].length).column
-    //           ),
-    //           options: { inlineClassName: "highlighted-text" },
-    //         };
-    //       }
-    //       return null;
-    //     })
-    //     .filter(Boolean);
-
-    //   editor.deltaDecorations(decorationsRef.current, []);
-
-    //   // Update decorations properly
-    //   decorationsRef.current = editor.deltaDecorations(
-    //     decorationsRef.current,
-    //     decorations
-    //   );
-    // };
-
-    const replaceVariables = (editor, monaco, fields) => {
-        const model = editor.getModel();
-        if (!model) return;
-        const value = model.getValue();
-
-        // Build regex pattern to match /variable_name
-        const variableNames = fields.map((field) =>
-            field.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-        );
-        const regexPattern = new RegExp(`/(?:${variableNames.join("|")})`, "g");
-
-        const matches = [...value.matchAll(regexPattern)];
-
-        if (matches.length === 0) return;
-
-        isUpdatingRef.current = true;
-
-        let edits = [];
-
-        matches.forEach((match) => {
-            const matchText = match[0]; // e.g., "/invoice_number"
-            const variableName = matchText.slice(1); // Remove "/"
-            const field = fields.find((field) => field.value === variableName);
-            if (field) {
-                const replacementText = `data["${variableName}"]`;
-
-                const startIndex = match.index;
-                const endIndex = match.index + matchText.length;
-
-                const startPosition = model.getPositionAt(startIndex);
-                const endPosition = model.getPositionAt(endIndex);
-
-                edits.push({
-                    range: new monaco.Range(
-                        startPosition.lineNumber,
-                        startPosition.column,
-                        endPosition.lineNumber,
-                        endPosition.column
-                    ),
-                    text: replacementText,
-                    forceMoveMarkers: true,
-                });
-            }
-        });
-
-        if (edits.length > 0) {
-            model.pushEditOperations([], edits, () => null);
-        }
-
-        isUpdatingRef.current = false;
-        onCodeChange(editor.getValue());
     };
 
     return (
