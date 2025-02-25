@@ -30,6 +30,15 @@ const MonacoEditorWithSlash = ({ onCodeChange, fields }) => {
 
                 // Get the content of the line
                 const lineContent = model.getLineContent(lineNumber);
+                const textUntilPosition = lineContent.substring(0, column - 1);
+
+                // Find the last '/' character before the cursor
+                const lastSlashIndex = textUntilPosition.lastIndexOf("/");
+
+                // if (lastSlashIndex === -1) {
+                //     // No '/' character found; do not provide suggestions
+                //     return { suggestions: [] };
+                // }
 
                 // Tokenize the line
                 const tokens = monaco.editor.tokenize(
@@ -63,18 +72,26 @@ const MonacoEditorWithSlash = ({ onCodeChange, fields }) => {
                     return { suggestions: [] };
                 }
 
+                // Calculate the range to replace: from character after '/', up to the cursor position
+                const startColumn = lastSlashIndex + 1; // '+2' because columns are 1-based
+                const endColumn = column;
+
                 const suggestions = fields.map((variable) => ({
                     label: `${variable.p_title} : ${variable.label}`,
                     kind: monaco.languages.CompletionItemKind.Variable,
-                    // insertText: `${variable.label}`, // Include `/`
-                    // insertText: `data["${variable.label}"]`, // Include `/`
                     insertText: `data["${variable.p_title}"]["${variable.label}"]`, // Include `/`
                     documentation: `Insert variable ${variable.value}`,
+                    filterText: `${variable.label}`,
                     range: new monaco.Range(
-                        position.lineNumber,
-                        position.column - 1,
-                        position.lineNumber,
-                        position.column
+                        // position.lineNumber,
+                        // position.column - 1,
+                        // position.lineNumber,
+                        // position.column
+
+                        lineNumber,
+                        startColumn,
+                        lineNumber,
+                        endColumn
                     ),
                 }));
 
