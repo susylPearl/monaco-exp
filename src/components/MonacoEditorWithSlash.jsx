@@ -52,6 +52,21 @@ const MonacoEditorWithSlash = ({ onCodeChange, fields }) => {
           }
         }
 
+        // No suggestions unless "/" is typed
+
+        var textUntilPosition = model.getValueInRange({
+          startLineNumber: 1,
+          startColumn: 1,
+          endLineNumber: position.lineNumber,
+          endColumn: position.column,
+        });
+
+        const lastChar = textUntilPosition.slice(-1);
+
+        if (lastChar !== "/") {
+          return { suggestions: [] };
+        }
+
         // If the token is a comment or string, do not provide suggestions
         if (
           tokenType &&
@@ -78,6 +93,7 @@ const MonacoEditorWithSlash = ({ onCodeChange, fields }) => {
             ? `data[\\"${variable.p_title}\\"][\\"${variable.label}\\"]`
             : `data["${variable.p_title}"]["${variable.label}"]`,
           documentation: `Insert variable ${variable.value}`,
+          filterText: "/",
           range: new monaco.Range(
             position.lineNumber,
             position.column - 1,
