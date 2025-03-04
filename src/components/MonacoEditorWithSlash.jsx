@@ -4,114 +4,121 @@ import { useRef } from "react";
 import "../App.css";
 
 const MonacoEditorWithSlash = ({ onCodeChange, fields }) => {
-  const editorRef = useRef(null);
+    const editorRef = useRef(null);
 
-  const handleEditorDidMount = (editor, monaco) => {
-    editorRef.current = editor;
+    const handleEditorDidMount = (editor, monaco) => {
+        editorRef.current = editor;
+        console.log("Fields length:", fields.length);
 
-    if (!monaco || !fields || fields.length === 0) return;
+        if (!monaco || !fields || fields.length === 0) return;
 
-    // Define a theme for highlighting
-    monaco.editor.defineTheme("myCustomTheme", {
-      base: "vs",
-      inherit: true,
-      rules: [],
-      colors: {},
-    });
-
-    monaco.editor.setTheme("myCustomTheme");
-
-    // Register autocomplete provider for "/"
-    monaco.languages.registerCompletionItemProvider("python", {
-      triggerCharacters: ["/"],
-      provideCompletionItems: (model, position) => {
-        const lineNumber = position.lineNumber;
-        const column = position.column;
-
-        // Get the content of the line
-        const lineContent = model.getLineContent(lineNumber);
-
-        // Tokenize the line
-        const tokens = monaco.editor.tokenize(
-          lineContent,
-          model.getLanguageId()
-        )[0];
-
-        console.log(tokens, lineContent);
-
-        let tokenType = null;
-        for (let i = 0; i < tokens.length; i++) {
-          const token = tokens[i];
-          const nextToken = tokens[i + 1];
-          const startOffset = token.offset;
-          const endOffset = nextToken ? nextToken.offset : lineContent.length;
-
-          if (column - 1 >= startOffset && column - 1 < endOffset) {
-            tokenType = token.type; // e.g., 'string.python', 'comment.python'
-            break;
-          }
-        }
-
-        // If the token is a comment or string, do not provide suggestions
-        if (
-          tokenType &&
-          (tokenType.includes("string") || tokenType.includes("comment"))
-        ) {
-          return { suggestions: [] };
-        }
-
-        const textBeforeCursor = model.getValueInRange({
-          startLineNumber: position.lineNumber,
-          startColumn: position.column - 2, // two index before i.e for tokens '/' & '{'
-          endLineNumber: position.lineNumber, // one index after i.e for token '}'
-          endColumn: position.column + 1,
+        // Define a theme for highlighting
+        monaco.editor.defineTheme("myCustomTheme", {
+            base: "vs",
+            inherit: true,
+            rules: [],
+            colors: {},
         });
 
-        // Check if the token is inside curly braces
-        const insideCurlyBraces =
-          textBeforeCursor.includes("{") && textBeforeCursor.includes("}");
+        monaco.editor.setTheme("myCustomTheme");
 
-        const suggestions = fields.map((variable) => ({
-          label: `${variable.p_title} : ${variable.label}`,
-          kind: monaco.languages.CompletionItemKind.Variable,
-          insertText: insideCurlyBraces
-            ? `data[\\"${variable.p_title}\\"][\\"${variable.label}\\"]`
-            : `data["${variable.p_title}"]["${variable.label}"]`,
-          documentation: `Insert variable ${variable.value}`,
-          range: new monaco.Range(
-            position.lineNumber,
-            position.column - 1,
-            position.lineNumber,
-            position.column
-          ),
-        }));
+        monaco.languages.registerCompletionItemProvider("python", {
+            triggerCharacters: ["/"],
+            provideCompletionItems: function (model, position) {
+                var textUntilPosition = model.getValueInRange({
+                    startLineNumber: 1,
+                    startColumn: 1,
+                    endLineNumber: position.lineNumber,
+                    endColumn: position.column,
+                });
 
-        return { suggestions };
-      },
-    });
+                // No suggestions unless "/" is typed
+                const lastSlashIndex = textUntilPosition.lastIndexOf("/");
+                console.log("lastSlashIndex", lastSlashIndex);
+                const lastChar = textUntilPosition.slice(-1);
 
-    // Notify parent component
-    onCodeChange(editor.getValue());
+                console.log("lastChar", lastChar);
+                if (lastChar !== "/") {
+                    return { suggestions: [] };
+                }
 
-    // Listen for content changes & update highlights
-    editor.onDidChangeModelContent(() => {
-      onCodeChange(editor.getValue());
-      // highlightVariables(editor, monaco, regexPattern);
-      // replaceVariables(editor, monaco, fields);
-    });
-  };
+                // No suggestion on comment and string
+                const lineNumber = position.lineNumber;
+                const lineContent = model.getLineContent(lineNumber);
+                const column = position.column;
 
-  return (
-    <div className="editor-container">
-      <Editor
-        height="400px"
-        width="1000px"
-        defaultLanguage="python"
-        theme="myCustomTheme"
-        onMount={handleEditorDidMount}
-      />
-    </div>
-  );
+                const tokens = monaco.editor.tokenize(
+                    lineContent,
+                    model.getLanguageId()
+                )[0];
+
+                let tokenType = null;
+                for (let i = 0; i < tokens.length; i++) {
+                    const token = tokens[i];
+                    const nextToken = tokens[i + 1];
+                    const startOffset = token.offset;
+                    const endOffset = nextToken
+                        ? nextToken.offset
+                        : lineContent.length;
+
+                    if (column - 1 >= startOffset && column - 1 < endOffset) {
+                        tokenType = token.type;
+                        break;
+                    }
+                }
+
+                if (
+                    tokenType &&
+                    (tokenType.includes("string") ||
+                        tokenType.includes("comment"))
+                ) {
+                    return { suggestions: [] };
+                }
+
+                var range = {
+                    startLineNumber: position.lineNumber,
+                    endLineNumber: position.lineNumber,
+                    startColumn: 1,
+                    endColumn: position.column,
+                };
+
+                const suggestions = fields.map((variable, index) => ({
+                    label: `${variable.p_title} : ${variable.label}`,
+                    kind: monaco.languages.CompletionItemKind.Variable,
+                    insertText: `data["${variable.p_title}"]["${variable.label}"]`,
+                    documentation: `Insert variable ${variable.value}`,
+                    filterText: "/",
+                    sortText: String(index).padStart(4, "0"),
+                    range: range,
+                }));
+                return {
+                    suggestions: suggestions,
+                };
+            },
+        });
+
+        // Notify parent component
+        onCodeChange(editor.getValue());
+
+        // Listen for content changes & update highlights
+        editor.onDidChangeModelContent(() => {
+            onCodeChange(editor.getValue());
+            // highlightVariables(editor, monaco, regexPattern);
+            // replaceVariables(editor, monaco, fields);
+        });
+    };
+
+    return (
+        <div className="editor-container">
+            <Editor
+                height="400px"
+                width="1000px"
+                defaultLanguage="python"
+                theme="myCustomTheme"
+                onMount={handleEditorDidMount}
+            />
+        </div>
+    );
 };
 
 export default MonacoEditorWithSlash;
